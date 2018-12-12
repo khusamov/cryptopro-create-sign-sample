@@ -5,11 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-	"start": "http-server"
+    "start": "http-server"
   },
   "author": "Khusamov Sukhrob <khusamov@yandex.ru> (http://khusamov.ru)",
   "license": "ISC",
   "dependencies": {
+    "file-saver": "^2.0.0",
     "http-server": "^0.11.1"
   }
 }

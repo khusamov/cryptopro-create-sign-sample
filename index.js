@@ -1,5 +1,14 @@
 
-function SignCreate(certSha1Hash, dataToSign) {
+async function run() {
+	var certSha1Hash = document.getElementById("certSha1Hash").value;
+	var oFile = document.getElementById("uploadFile").files[0];
+
+	var sBase64Data = await fileToBase64(oFile);
+	var sign = await SignCreate(certSha1Hash, sBase64Data);
+	document.getElementById("signature").innerHTML = sign;
+}
+
+async function SignCreate(certSha1Hash, dataToSign) {
 	return new Promise(function (resolve, reject) {
 		cadesplugin.async_spawn(function* (args) {
 			try {
@@ -24,35 +33,22 @@ function SignCreate(certSha1Hash, dataToSign) {
 	});
 }
 
-function run() {
-	var certSha1Hash = document.getElementById("certSha1Hash").value;
-	if ("" == certSha1Hash) {
-		alert("Введите имя сертификата (CN).");
-		return;
-	}
-
+function saveSign() {
 	var oFile = document.getElementById("uploadFile").files[0];
-	var oFReader = new FileReader();
-	oFReader.readAsDataURL(oFile);
-
-	oFReader.onload = function (oFREvent) {
-		var header = ";base64,";
-		var sFileData = oFREvent.target.result;
-		var sBase64Data = sFileData.substr(sFileData.indexOf(header) + header.length);
-
-		var thenable = SignCreate(certSha1Hash, sBase64Data);
-
-		thenable.then(
-			function (result) {
-				document.getElementById("signature").innerHTML = result;
-			},
-			function (result) {
-				document.getElementById("signature").innerHTML = result;
-			});
-	};
-
+	saveAs(new Blob([document.getElementById("signature").innerHTML], {type: "text/plain;charset=utf-8"}), `${oFile.name}.sig`);
 }
 
+async function fileToBase64(oFile) {
+	const fileReader = new FileReader();
+	await fileReader.readAsDataURL(oFile);
+	return new Promise(resolve => {
+		fileReader.onload = function (fileReaderEvent) {
+			const header = ";base64,";
+			const sFileData = fileReaderEvent.target.result;
+			resolve(sFileData.substr(sFileData.indexOf(header) + header.length));
+		};
+	});
+}
 
 async function getCertificate(criterionValue, findType = cadesplugin.CAPICOM_CERTIFICATE_FIND_SHA1_HASH) {
 	const oStore = await cadesplugin.CreateObjectAsync("CAdESCOM.Store");
@@ -70,4 +66,3 @@ async function getCertificate(criterionValue, findType = cadesplugin.CAPICOM_CER
 	await oStore.Close();
 	return oCertificates.Item(1);
 }
-

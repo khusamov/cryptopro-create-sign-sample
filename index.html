@@ -1,5 +1,6 @@
 <html>
 	<head>
+		<script src="node_modules\file-saver\dist\FileSaver.min.js"></script>
 		<script src="cadesplugin_api.js"></script>
 		<script src="index.js"></script>
 	</head>
@@ -7,6 +8,7 @@
 		<p>Отпечаток сертификата*: <input id="certSha1Hash" type="text" value="4EB8A12FC0A95036BB0DED22BD64352ABFCA07DB"></p>
 		<p><input id="uploadFile" type="file" onchange="run()"></p>
 		<pre id="signature"></pre>
+		<button onclick="saveSign()">Сохранить подпись...</button>
 		<div>_______<br/>* Отпечаток сертификата можно посмотреть в свойствах сертификата (вкладка Состав), например при помощи КриптоАРМ.</div>
 	</body>
 </html>
