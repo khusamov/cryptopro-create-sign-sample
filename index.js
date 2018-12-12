@@ -1,22 +1,10 @@
 
-function SignCreate(certSubjectName, dataToSign) {
+function SignCreate(certSha1Hash, dataToSign) {
 	return new Promise(function (resolve, reject) {
 		cadesplugin.async_spawn(function* (args) {
 			try {
-				var oStore = yield cadesplugin.CreateObjectAsync("CAdESCOM.Store");
-				yield oStore.Open(cadesplugin.CAPICOM_CURRENT_USER_STORE, cadesplugin.CAPICOM_MY_STORE,
-					cadesplugin.CAPICOM_STORE_OPEN_MAXIMUM_ALLOWED);
+				var oCertificate = yield getCertificate(certSha1Hash);
 
-
-				var CertificatesObj = yield oStore.Certificates;
-				var oCertificates = yield CertificatesObj.Find(
-					cadesplugin.CAPICOM_CERTIFICATE_FIND_SUBJECT_NAME, certSubjectName);
-
-				var Count = yield oCertificates.Count;
-				if (Count == 0) {
-					throw ("Certificate not found: " + args[0]);
-				}
-				var oCertificate = yield oCertificates.Item(1);
 				var oSigner = yield cadesplugin.CreateObjectAsync("CAdESCOM.CPSigner");
 				yield oSigner.propset_Certificate(oCertificate);
 
@@ -26,22 +14,19 @@ function SignCreate(certSubjectName, dataToSign) {
 
 				var sSignedMessage = yield oSignedData.SignCades(oSigner, cadesplugin.CADESCOM_CADES_BES, true);
 
-				yield oStore.Close();
-
 				args[2](sSignedMessage);
 			}
 			catch (err) {
 				console.error(err);
 				args[3]("Failed to create signature. Error: " + cadesplugin.getLastError(err));
 			}
-		}, certSubjectName, dataToSign, resolve, reject);
+		}, certSha1Hash, dataToSign, resolve, reject);
 	});
 }
 
 function run() {
-	var oCertName = document.getElementById("CertName");
-	var sCertName = oCertName.value;
-	if ("" == sCertName) {
+	var certSha1Hash = document.getElementById("certSha1Hash").value;
+	if ("" == certSha1Hash) {
 		alert("Введите имя сертификата (CN).");
 		return;
 	}
@@ -55,7 +40,7 @@ function run() {
 		var sFileData = oFREvent.target.result;
 		var sBase64Data = sFileData.substr(sFileData.indexOf(header) + header.length);
 
-		var thenable = SignCreate(sCertName, sBase64Data);
+		var thenable = SignCreate(certSha1Hash, sBase64Data);
 
 		thenable.then(
 			function (result) {
@@ -67,3 +52,22 @@ function run() {
 	};
 
 }
+
+
+async function getCertificate(criterionValue, findType = cadesplugin.CAPICOM_CERTIFICATE_FIND_SHA1_HASH) {
+	const oStore = await cadesplugin.CreateObjectAsync("CAdESCOM.Store");
+	await oStore.Open(
+		cadesplugin.CAPICOM_CURRENT_USER_STORE,
+		cadesplugin.CAPICOM_MY_STORE,
+		cadesplugin.CAPICOM_STORE_OPEN_MAXIMUM_ALLOWED
+	);
+	const certificatesObj = await oStore.Certificates;
+	const oCertificates = await certificatesObj.Find(findType, criterionValue);
+	const oCertificatesCount = await oCertificates.Count;
+	if (oCertificatesCount === 0) {
+		throw new Error(`Не найден сертификат '${criterionValue}'`);
+	}
+	await oStore.Close();
+	return oCertificates.Item(1);
+}
+

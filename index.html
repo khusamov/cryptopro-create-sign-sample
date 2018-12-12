@@ -4,9 +4,9 @@
 		<script src="index.js"></script>
 	</head>
 	<body>
-		<input id="uploadFile" type="file">
-		<input id="CertName" type="text" value="ЭЦП2">
-		<button onclick="run()">Создать подпись</button>
-		<div id="signature"></div>
+		<p>Отпечаток сертификата*: <input id="certSha1Hash" type="text" value="4EB8A12FC0A95036BB0DED22BD64352ABFCA07DB"></p>
+		<p><input id="uploadFile" type="file" onchange="run()"></p>
+		<pre id="signature"></pre>
+		<div>_______<br/>* Отпечаток сертификата можно посмотреть в свойствах сертификата (вкладка Состав), например при помощи КриптоАРМ.</div>
 	</body>
 </html>
