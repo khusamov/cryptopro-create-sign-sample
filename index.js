@@ -9,33 +9,30 @@ async function run() {
 }
 
 async function SignCreate(certSha1Hash, dataToSign) {
-	return new Promise(function (resolve, reject) {
-		cadesplugin.async_spawn(function* (args) {
-			try {
-				var oCertificate = yield getCertificate(certSha1Hash);
+	var oCertificate = await getCertificate(certSha1Hash);
 
-				var oSigner = yield cadesplugin.CreateObjectAsync("CAdESCOM.CPSigner");
-				yield oSigner.propset_Certificate(oCertificate);
+	var oSigner = await cadesplugin.CreateObjectAsync("CAdESCOM.CPSigner");
+	await oSigner.propset_Certificate(oCertificate);
 
-				var oSignedData = yield cadesplugin.CreateObjectAsync("CAdESCOM.CadesSignedData");
-				yield oSignedData.propset_ContentEncoding(cadesplugin.CADESCOM_BASE64_TO_BINARY);
-				yield oSignedData.propset_Content(dataToSign);
+	var oSignedData = await cadesplugin.CreateObjectAsync("CAdESCOM.CadesSignedData");
+	await oSignedData.propset_ContentEncoding(cadesplugin.CADESCOM_BASE64_TO_BINARY);
+	await oSignedData.propset_Content(dataToSign);
 
-				var sSignedMessage = yield oSignedData.SignCades(oSigner, cadesplugin.CADESCOM_CADES_BES, true);
-
-				args[2](sSignedMessage);
-			}
-			catch (err) {
-				console.error(err);
-				args[3]("Failed to create signature. Error: " + cadesplugin.getLastError(err));
-			}
-		}, certSha1Hash, dataToSign, resolve, reject);
-	});
+	var sSignedMessage = await oSignedData.SignCades(oSigner, cadesplugin.CADESCOM_CADES_BES, true);
+	return sSignedMessage;
 }
 
 function saveSign() {
 	var oFile = document.getElementById("uploadFile").files[0];
-	saveAs(new Blob([document.getElementById("signature").innerHTML], {type: "text/plain;charset=utf-8"}), `${oFile.name}.sig`);
+	if (oFile) {
+		saveAs(
+			new Blob(
+				[document.getElementById("signature").innerHTML],
+				{ type: "text/plain;charset=utf-8" }
+			),
+			`${oFile.name}.sig`
+		);
+	}
 }
 
 async function fileToBase64(oFile) {
