@@ -3,12 +3,11 @@ async function run() {
 	var certSha1Hash = document.getElementById("certSha1Hash").value;
 	var oFile = document.getElementById("uploadFile").files[0];
 
-	var sBase64Data = await fileToBase64(oFile);
-	var sign = await SignCreate(certSha1Hash, sBase64Data);
+	var sign = await SignCreate(certSha1Hash, oFile);
 	document.getElementById("signature").innerHTML = sign;
 }
 
-async function SignCreate(certSha1Hash, dataToSign) {
+async function SignCreate(certSha1Hash, oFile) {
 	var oCertificate = await getCertificate(certSha1Hash);
 
 	var oSigner = await cadesplugin.CreateObjectAsync("CAdESCOM.CPSigner");
@@ -16,7 +15,7 @@ async function SignCreate(certSha1Hash, dataToSign) {
 
 	var oSignedData = await cadesplugin.CreateObjectAsync("CAdESCOM.CadesSignedData");
 	await oSignedData.propset_ContentEncoding(cadesplugin.CADESCOM_BASE64_TO_BINARY);
-	await oSignedData.propset_Content(dataToSign);
+	await oSignedData.propset_Content(await fileToBase64(oFile));
 
 	var sSignedMessage = await oSignedData.SignCades(oSigner, cadesplugin.CADESCOM_CADES_BES, true);
 	return sSignedMessage;
@@ -32,6 +31,7 @@ function saveSign() {
 			),
 			`${oFile.name}.sig`
 		);
+		saveAs(oFile, `${oFile.name}.COPY.pdf`);
 	}
 }
 
