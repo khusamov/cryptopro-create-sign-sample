@@ -2,9 +2,12 @@
 async function run() {
 	var certSha1Hash = document.getElementById("certSha1Hash").value;
 	var oFile = document.getElementById("uploadFile").files[0];
-
-	var sign = await SignCreate(certSha1Hash, oFile);
-	document.getElementById("signature").innerHTML = sign;
+	var signatureEl = document.getElementById("signature");
+	signatureEl.innerHTML = '';
+	if (oFile) {
+		var sign = await SignCreate(certSha1Hash, oFile);
+		signatureEl.innerHTML = sign;
+	}
 }
 
 async function SignCreate(certSha1Hash, oFile) {
