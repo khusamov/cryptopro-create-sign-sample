@@ -66,3 +66,65 @@ async function getCertificate(criterionValue, findType = cadesplugin.CAPICOM_CER
 	await oStore.Close();
 	return oCertificates.Item(1);
 }
+
+/**
+ * Получить список сертификатов.
+ * TODO Переписать на async/await.
+ * TODO Переделать выходной массив.
+ */
+async function getCertificates() {
+	return new Promise(function (resolve, reject) {
+		cadesplugin.async_spawn(function* (args) {
+			try {
+				const oStore = yield cadesplugin.CreateObjectAsync("CAdESCOM.Store"),
+					certificateList = { count: 0, resultItems: [] };
+
+				yield oStore.Open(
+					cadesplugin.CAPICOM_CURRENT_USER_STORE,
+					cadesplugin.CAPICOM_MY_STORE,
+					cadesplugin.CAPICOM_STORE_OPEN_MAXIMUM_ALLOWED);
+
+				const CertificatesObj = yield oStore.Certificates,
+					cCount = yield CertificatesObj.Count;
+
+				certificateList.count = cCount;
+
+				for (let i = 1; i <= cCount; i++) {
+					const item = yield CertificatesObj.Item(i),
+						creator = yield item.GetInfo(1),
+						email = yield item.GetInfo(2),
+						emailSupport = yield item.GetInfo(3),
+						owner = yield item.GetInfo(6),
+						validFromDate = yield item.ValidFromDate,
+						validToDate = yield item.ValidToDate,
+						serialNumber = yield item.SerialNumber,
+						subjectName = yield item.SubjectName,
+						issuerName = yield item.IssuerName,
+						version = yield item.Version,
+						thumbprint = yield item.Thumbprint;
+
+					certificateList.resultItems.push({
+						creator: creator,
+						email: email,
+						emailSupport: emailSupport,
+						owner: owner,
+						validFromDate: validFromDate,
+						validToDate: validToDate,
+						serialNumber: serialNumber,
+						subjectName: subjectName,
+						issuerName: issuerName,
+						version: version,
+						thumbprint: thumbprint
+					});
+				}
+
+				yield oStore.Close();
+
+				args[0](certificateList);
+			}
+			catch (err) {
+				args[1]("Не получилось извлечь сертификаты. Ошибка: " + cadesplugin.getLastError(err));
+			}
+		}, resolve, reject);
+	});
+}
