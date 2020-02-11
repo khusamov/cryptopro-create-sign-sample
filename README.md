@@ -28,3 +28,13 @@ npm start
 
 https://github.com/Aleksandr-ru/RusCryptoJS  
 http://aleksandr.ru/blog/dobavlenie_subjectsigntool_v_kriptopro_ecp_browser_plug_in/  
+
+Ссылки по теме
+---------------
+
+Проверка подписи:  
+https://www.cryptopro.ru/sites/default/files/products/cades/demopage/simple.html
+
+Создание тестовой подписи:  
+https://www.cryptopro.ru/certsrv/certrqma.asp
+https://www.cryptopro.ru/certsrv/
